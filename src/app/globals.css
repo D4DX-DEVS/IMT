@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef7fa;
+  --color-brand-100: #d5ebf2;
+  --color-brand-200: #a9d4e3;
+  --color-brand-300: #6fb3cc;
+  --color-brand-400: #3a8aaa;
+  --color-brand-500: #176b8c;
+  --color-brand-600: #0a4c68;
+  --color-brand-700: #0b3f56;
+  --color-brand-800: #0b314b;
+  --color-brand-900: #08233a;
+  --color-brand-950: #051726;
+
+  --color-gold-50: #fdf8eb;
+  --color-gold-100: #faedc8;
+  --color-gold-200: #f5d98c;
+  --color-gold-300: #f0c250;
+  --color-gold-400: #e9ab26;
+  --color-gold-500: #cc970f;
+  --color-gold-600: #af8700;
+  --color-gold-700: #8a6505;
+
+  --color-sand: #faf7f0;
+  --color-ink: #0f1b24;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-lora), ui-serif, Georgia, serif;
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shine: shine 2.4s ease-in-out infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes shine {
+    from { transform: translateX(-120%) skewX(-20deg); }
+    to { transform: translateX(220%) skewX(-20deg); }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+  body {
+    @apply bg-sand text-ink font-sans antialiased;
+  }
+  ::selection {
+    @apply bg-gold-300 text-brand-900;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-gold-500;
+  }
+}
+
+@utility container-x {
+  @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+/* Subtle geometric pattern inspired by Islamic star tiling. */
+@utility bg-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.07'%3E%3Cpath d='M28 4l7 17 17 7-17 7-7 17-7-17-17-7 17-7z'/%3E%3Ccircle cx='28' cy='28' r='9'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+@utility bg-pattern-dark {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%230a4c68' stroke-opacity='0.06'%3E%3Cpath d='M28 4l7 17 17 7-17 7-7 17-7-17-17-7 17-7z'/%3E%3Ccircle cx='28' cy='28' r='9'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
