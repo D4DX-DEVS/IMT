@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Building2, HandCoins, Sprout } from "lucide-react";
-import { aboutParagraphs, site } from "@/data/site";
+import { getContent } from "@/content";
 import { PageHero } from "@/components/page-hero";
 import { MissionVision } from "@/components/mission-vision";
 import { Reveal, Stagger, StaggerItem } from "@/components/reveal";
@@ -13,22 +13,16 @@ export const metadata: Metadata = {
     "The Islamic Mission Trust (IMT) came into existence in the 1970s as a beacon of educational and cultural revival in Malabar, Kerala.",
 };
 
-/** Milestones stated in the About copy. */
-const milestones = [
-  { year: "1955", text: "Formation efforts of educational and social activists begin in Malabar." },
-  { year: "1970s", text: "IMT comes into existence as a beacon of educational and cultural revival." },
-  { year: "5 decades", text: "Contributing to the social and educational revolution in Kerala." },
-  { year: "Today", text: "Around 13 prestigious institutions, including the renowned Al Jamia Al Islamia." },
-];
-
 const income = [
   { icon: Sprout, label: "Agriculture" },
   { icon: Building2, label: "Commercial establishments" },
   { icon: HandCoins, label: "Donations" },
 ];
 
-export default function AboutPage() {
-  const [first, second] = aboutParagraphs;
+export default async function AboutPage() {
+  const { site, aboutPage } = await getContent();
+  const { milestones } = aboutPage;
+  const [first, ...rest] = aboutPage.paragraphs;
 
   return (
     <>
@@ -43,7 +37,7 @@ export default function AboutPage() {
                 <span className="h-px w-8 bg-current" /> About IMT
               </p>
               <h2 className="mt-4 font-display text-4xl leading-tight font-semibold text-brand-800 sm:text-5xl">
-                A beacon of educational and cultural revival
+                {aboutPage.heading}
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
@@ -51,9 +45,11 @@ export default function AboutPage() {
                 {first}
               </p>
             </Reveal>
-            <Reveal delay={0.15}>
-              <p className="mt-6 text-lg leading-relaxed text-ink/75">{second}</p>
-            </Reveal>
+            {rest.map((paragraph, i) => (
+              <Reveal key={i} delay={0.15}>
+                <p className="mt-6 text-lg leading-relaxed text-ink/75">{paragraph}</p>
+              </Reveal>
+            ))}
 
             <Stagger className="mt-10 grid gap-4 sm:grid-cols-3">
               {income.map(({ icon: Icon, label }) => (
@@ -107,7 +103,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <MissionVision />
+      <MissionVision
+        items={[
+          { key: "mission", title: "Mission", paragraphs: aboutPage.mission },
+          { key: "vision", title: "Vision", paragraphs: aboutPage.vision },
+        ]}
+      />
     </>
   );
 }

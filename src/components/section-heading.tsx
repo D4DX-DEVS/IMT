@@ -18,7 +18,7 @@ export function SectionHeading({
     <Reveal className={cn("max-w-3xl", align === "center" && "mx-auto text-center")}>
       <p
         className={cn(
-          "inline-flex items-center gap-3 text-xs font-semibold tracking-[0.3em] uppercase",
+          "inline-flex items-center gap-3 text-xs font-bold tracking-[0.3em] uppercase",
           tone === "dark" ? "text-gold-300" : "text-gold-600",
         )}
       >
@@ -28,14 +28,14 @@ export function SectionHeading({
       </p>
       <h2
         className={cn(
-          "mt-4 font-display text-4xl leading-tight font-semibold text-balance sm:text-5xl",
+          "mt-4 font-display text-3xl leading-tight font-semibold text-balance sm:text-4xl lg:text-[2.6rem]",
           tone === "dark" ? "text-white" : "text-brand-800",
         )}
       >
         {title}
       </h2>
       {intro && (
-        <p className={cn("mt-5 text-lg leading-relaxed", tone === "dark" ? "text-white/75" : "text-ink/65")}>
+        <p className={cn("mt-4 leading-relaxed sm:text-lg", tone === "dark" ? "text-white/75" : "text-ink/65")}>
           {intro}
         </p>
       )}
