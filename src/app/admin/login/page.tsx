@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
-import { adminConfigured, isAdmin } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth";
+import { adminConfigProblems } from "@/lib/auth-token";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -47,15 +48,23 @@ async function LoginScreen({ searchParams }: { searchParams: PageProps<"/admin/l
   const { next } = await searchParams;
   if (await isAdmin()) redirect("/admin");
 
-  if (!adminConfigured()) {
+  const problems = adminConfigProblems();
+  if (problems.length) {
     return (
       <div role="alert" className="flex items-start gap-3 rounded-xl bg-amber-50 px-4 py-4 text-sm text-amber-900 ring-1 ring-amber-200">
         <ShieldAlert className="mt-0.5 size-5 shrink-0" />
-        <p>
-          Sign-in isn’t set up on this server yet. Set <code className="font-semibold">ADMIN_USERNAME</code>,{" "}
-          <code className="font-semibold">ADMIN_PASSWORD</code> and <code className="font-semibold">SESSION_SECRET</code>{" "}
-          in the environment (see <code className="font-semibold">.env.example</code>), then restart.
-        </p>
+        <div>
+          <p className="font-semibold">Sign-in isn’t set up correctly on this server yet.</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {problems.map((problem) => (
+              <li key={problem}>{problem}</li>
+            ))}
+          </ul>
+          <p className="mt-2">
+            Fix it in the environment (<code className="font-semibold">.env.local</code> or <code className="font-semibold">.env</code>,
+            see <code className="font-semibold">.env.example</code>), then restart.
+          </p>
+        </div>
       </div>
     );
   }

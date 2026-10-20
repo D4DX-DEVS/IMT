@@ -33,7 +33,7 @@ The single admin account comes from environment variables (see `.env.example`):
 | Variable | Purpose |
 | --- | --- |
 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | The login. Use a long, unique password in production |
-| `SESSION_SECRET` | At least 32 random characters (`openssl rand -hex 32`). Signs the login cookie |
+| `SESSION_SECRET` | At least 16 characters; 32+ random ones are best (`openssl rand -hex 32`). Signs the login cookie |
 
 Changing the password or the secret signs everyone out. After 5 wrong passwords from one address, sign-in is paused for
 15 minutes. Serve the site over **HTTPS** in production — the login cookie is marked `Secure` there.

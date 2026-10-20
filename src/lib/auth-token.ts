@@ -6,7 +6,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
  *
  * Credentials come from the environment:
  *   ADMIN_USERNAME, ADMIN_PASSWORD   the single admin account
- *   SESSION_SECRET                   at least 32 random characters, signs the session cookie
+ *   SESSION_SECRET                   at least 16 characters (32+ random ones are best), signs the session cookie
  * Changing the password or the secret signs everyone out.
  */
 export const SESSION_COOKIE = "imt_admin_session";
@@ -14,10 +14,25 @@ export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 type AdminConfig = { username: string; password: string; secret: string };
 
-export function adminConfig(): AdminConfig | null {
+export const MIN_SECRET_LENGTH = 16;
+
+/** What is wrong with the admin settings, in words (names only, never values). Empty when they are fine. */
+export function adminConfigProblems(): string[] {
   const { ADMIN_USERNAME: username, ADMIN_PASSWORD: password, SESSION_SECRET: secret } = process.env;
-  if (!username || !password || !secret || secret.length < 32) return null;
-  return { username, password, secret };
+  const problems: string[] = [];
+  if (!username) problems.push("ADMIN_USERNAME is not set");
+  if (!password) problems.push("ADMIN_PASSWORD is not set");
+  if (!secret) problems.push("SESSION_SECRET is not set");
+  else if (secret.length < MIN_SECRET_LENGTH) {
+    problems.push(`SESSION_SECRET is only ${secret.length} characters long; it needs at least ${MIN_SECRET_LENGTH} (32 or more is best)`);
+  }
+  return problems;
+}
+
+export function adminConfig(): AdminConfig | null {
+  if (adminConfigProblems().length) return null;
+  const { ADMIN_USERNAME: username, ADMIN_PASSWORD: password, SESSION_SECRET: secret } = process.env;
+  return { username: username!, password: password!, secret: secret! };
 }
 
 const sha256 = (value: string) => createHash("sha256").update(value).digest();

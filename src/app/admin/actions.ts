@@ -17,8 +17,8 @@ import {
 } from "@/content/schema";
 import { ContentError, updateContent } from "@/content/store";
 import { explainStorageError, getStore } from "@/storage";
-import { adminConfigured, endSession, requireAdmin, startSession } from "@/lib/auth";
-import { verifyCredentials } from "@/lib/auth-token";
+import { endSession, requireAdmin, startSession } from "@/lib/auth";
+import { adminConfigProblems, verifyCredentials } from "@/lib/auth-token";
 import { clearLoginFailures, loginRetryAfter, recordLoginFailure } from "@/lib/rate-limit";
 import type { ActionState, LoginState } from "@/lib/action-state";
 
@@ -32,11 +32,9 @@ function safeNext(value: FormDataEntryValue | null): string {
 }
 
 export async function login(_previous: LoginState, formData: FormData): Promise<LoginState> {
-  if (!adminConfigured()) {
-    return {
-      error:
-        "Admin sign-in isn't set up on this server. Set ADMIN_USERNAME, ADMIN_PASSWORD and SESSION_SECRET (see .env.example).",
-    };
+  const problems = adminConfigProblems();
+  if (problems.length) {
+    return { error: `Admin sign-in isn't set up correctly on this server: ${problems.join("; ")}.` };
   }
 
   const h = await headers();
