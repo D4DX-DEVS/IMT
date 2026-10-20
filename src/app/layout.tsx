@@ -1,52 +1,47 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Lora } from "next/font/google";
+import { Lora, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
-import { ScrollProgress } from "@/components/scroll-progress";
-import { site } from "@/data/site";
+import { getContent } from "@/content";
+import { seedContent } from "@/content/seed";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"] });
 const lora = Lora({ variable: "--font-lora", subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(site.url),
-  title: {
-    default: `${site.name} (${site.shortName})`,
-    template: `%s – ${site.shortName}`,
-  },
-  description:
-    "Islamic Mission Trust (IMT) — Excellence in Education with Societal Commitment. 13 institutions, 400+ faculty and 7000 students across Kerala, including Al Jamia Al Islamia, Santapuram.",
-  openGraph: {
-    type: "website",
-    siteName: site.name,
-    images: ["/images/hero-campus.jpeg"],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // If storage can't be reached, still render the page (the admin must stay usable to show what's wrong).
+  // Failures aren't cached, so the real content comes back as soon as storage does.
+  const { site, home, institutions } = await getContent().catch((error) => {
+    console.error("[metadata] could not load content; using the built-in defaults", error);
+    return seedContent;
+  });
+  const first = institutions[0];
+  return {
+    metadataBase: new URL(site.url),
+    title: {
+      default: `${site.name} (${site.shortName})`,
+      template: `%s – ${site.shortName}`,
+    },
+    description: `${site.name} (${site.shortName}) — ${site.motto}. ${institutions.length} institutions across Kerala${
+      first ? `, including ${first.name}${first.location ? `, ${first.location}` : ""}` : ""
+    }.`,
+    openGraph: {
+      type: "website",
+      siteName: site.name,
+      images: [home.hero.image],
+    },
+  };
+}
 
 export const viewport: Viewport = {
-  themeColor: "#0a4c68",
+  themeColor: "#0a2147",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${lora.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${jakarta.variable} ${lora.variable}`}>
       <body className="flex min-h-dvh flex-col overflow-x-clip">
-        <a
-          href="#main"
-          className="sr-only z-[100] rounded-md bg-gold-400 px-4 py-2 font-medium text-brand-900 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
-        >
-          Skip to content
-        </a>
-        <Providers>
-          <ScrollProgress />
-          <Navbar />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

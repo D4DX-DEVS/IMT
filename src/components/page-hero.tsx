@@ -13,11 +13,14 @@ export function PageHero({
   eyebrow,
   image = "/images/page-hero.jpg",
   crumbs = [],
+  compact = false,
 }: {
   title: string;
   eyebrow?: string;
   image?: string;
   crumbs?: { label: string; href?: string }[];
+  /** Smaller title, for long names. */
+  compact?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -75,7 +78,13 @@ export function PageHero({
             {eyebrow}
           </motion.p>
         )}
-        <h1 className="mt-3 overflow-hidden font-display text-5xl font-semibold tracking-wide sm:text-7xl">
+        <h1
+          className={
+            compact
+              ? "mt-3 overflow-hidden pb-1 font-display text-4xl leading-tight font-semibold tracking-wide sm:text-5xl lg:text-6xl"
+              : "mt-3 overflow-hidden font-display text-5xl font-semibold tracking-wide sm:text-7xl"
+          }
+        >
           <motion.span
             className="block"
             initial={{ y: "110%" }}

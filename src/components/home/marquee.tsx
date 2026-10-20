@@ -1,7 +1,4 @@
-import { institutions } from "@/data/site";
-
-export function Marquee() {
-  const names = institutions.map((i) => i.name);
+export function Marquee({ names }: { names: readonly string[] }) {
   return (
     <div className="relative overflow-hidden border-y border-brand-100 bg-white py-5" aria-hidden>
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-white to-transparent" />

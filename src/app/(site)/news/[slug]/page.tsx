@@ -2,23 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, Tag, User } from "lucide-react";
-import { posts } from "@/data/site";
+import { getContent } from "@/content";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { formatDate } from "@/lib/format";
 
-export function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }));
-}
-
 export async function generateMetadata({ params }: PageProps<"/news/[slug]">): Promise<Metadata> {
   const { slug } = await params;
+  const { posts } = await getContent();
   const post = posts.find((p) => p.slug === slug);
   return post ? { title: post.title, description: post.content[0] } : {};
 }
 
+// Posts are added in the admin panel at any time, so their slugs aren't known at build time and
+// each page renders on first request. This opts out of the dev-time "instant navigation" check.
+export const instant = false;
+
 export default async function PostPage({ params }: PageProps<"/news/[slug]">) {
   const { slug } = await params;
+  const { posts } = await getContent();
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 

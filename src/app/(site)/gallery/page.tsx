@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { gallery } from "@/data/site";
+import { getContent } from "@/content";
 import { PageHero } from "@/components/page-hero";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { Reveal } from "@/components/reveal";
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   description: "Photos of Islamic Mission Trust institutions and campuses across Kerala.",
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const { gallery } = await getContent();
   return (
     <>
       <PageHero
