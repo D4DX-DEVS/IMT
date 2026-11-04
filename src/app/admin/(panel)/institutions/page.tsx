@@ -13,9 +13,6 @@ import { buttonClass } from "@/components/admin/styles";
 
 export const metadata: Metadata = { title: "Institutions" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function InstitutionsAdminPage() {
   await requireAdmin();
   const { institutions } = await readContent();

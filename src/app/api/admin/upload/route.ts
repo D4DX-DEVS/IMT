@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   if (file.size > MAX_UPLOAD_BYTES) return Response.json({ error: `That image is larger than ${MAX_UPLOAD_MB} MB.` }, { status: 413 });
 
   try {
-    const saved = await saveUpload(Buffer.from(await file.arrayBuffer()), file.name);
+    const saved = await saveUpload(new Uint8Array(await file.arrayBuffer()), file.name);
     return Response.json(saved);
   } catch (error) {
     if (error instanceof UploadError) return Response.json({ error: error.message }, { status: 400 });

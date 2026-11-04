@@ -9,9 +9,6 @@ import { PostForm } from "@/components/admin/post-form";
 
 export const metadata: Metadata = { title: "Edit post" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function EditPostPage({ params }: PageProps<"/admin/news/[slug]">) {
   await requireAdmin();
   const { slug } = await params;

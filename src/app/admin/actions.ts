@@ -16,10 +16,10 @@ import {
   type Content,
 } from "@/content/schema";
 import { ContentError, updateContent } from "@/content/store";
-import { explainStorageError, getStore } from "@/storage";
+import { STORAGE_DESCRIPTION, db, explainStorageError, media } from "@/storage";
 import { endSession, requireAdmin, startSession } from "@/lib/auth";
 import { adminConfigProblems, verifyCredentials } from "@/lib/auth-token";
-import { clearLoginFailures, loginRetryAfter, recordLoginFailure } from "@/lib/rate-limit";
+import { clearLoginFailures, reserveLoginAttempt } from "@/lib/rate-limit";
 import type { ActionState, LoginState } from "@/lib/action-state";
 
 /* ---------- Sign in / out ---------- */
@@ -38,8 +38,10 @@ export async function login(_previous: LoginState, formData: FormData): Promise<
   }
 
   const h = await headers();
-  const client = (h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "local").trim();
-  const wait = loginRetryAfter(client);
+  // Cloudflare sets CF-Connecting-IP to the visitor's real address; it can't be spoofed through Cloudflare.
+  const client = (h.get("cf-connecting-ip") ?? h.get("x-forwarded-for")?.split(",")[0] ?? "local").trim();
+  // Counted before the password is checked, so parallel guesses can't get past the limit.
+  const wait = await reserveLoginAttempt(client);
   if (wait > 0) {
     return { error: `Too many failed attempts. Try again in ${Math.max(1, Math.ceil(wait / 60))} minute(s).` };
   }
@@ -47,12 +49,11 @@ export async function login(_previous: LoginState, formData: FormData): Promise<
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
   if (!verifyCredentials(username, password)) {
-    recordLoginFailure(client);
     await new Promise((resolve) => setTimeout(resolve, 600)); // slow down guessing
     return { error: "Incorrect username or password." };
   }
 
-  clearLoginFailures(client);
+  await clearLoginFailures(client);
   if (!(await startSession())) return { error: "Could not start a session. Check SESSION_SECRET." };
   redirect(safeNext(formData.get("next")));
 }
@@ -243,54 +244,29 @@ export async function deletePost(slug: string): Promise<ActionState> {
 /* ---------- Storage ---------- */
 
 /**
- * Checks the storage settings: writes, reads back and deletes a tiny private file, and — if a CDN address is
- * set — uploads a tiny public file and fetches it through the CDN, so a wrong key, Space name or CDN
- * address shows up right away.
+ * Checks the storage bindings: queries the D1 tables, and writes, reads back and deletes a tiny file in
+ * the R2 bucket, so a missing binding, unmigrated database or wrong bucket shows up right away.
  */
 export async function testStorage(): Promise<ActionState> {
   await requireAdmin();
 
-  let store: ReturnType<typeof getStore>;
   try {
-    store = getStore();
+    await (await db()).prepare("SELECT (SELECT COUNT(*) FROM content) + (SELECT COUNT(*) FROM media) AS n").first();
   } catch (error) {
     return fail(explainStorageError(error));
   }
 
-  const stamp = Date.now();
-  const privateKey = `healthcheck-${stamp}.txt`;
+  const key = `healthcheck/${Date.now()}.txt`;
   try {
-    await store.put(privateKey, "ok", { contentType: "text/plain" });
-    const back = await store.get(privateKey);
-    await store.delete(privateKey);
-    if (back?.toString("utf8") !== "ok") return fail("A test file was written but could not be read back.");
+    const bucket = await media();
+    await bucket.put(key, "ok", { httpMetadata: { contentType: "text/plain" } });
+    const back = await bucket.get(key);
+    const text = back ? await back.text() : null;
+    await bucket.delete(key);
+    if (text !== "ok") return fail("A test file was written to R2 but could not be read back.");
   } catch (error) {
     return fail(explainStorageError(error));
   }
 
-  const publicKey = `healthcheck-public-${stamp}.txt`;
-  const url = store.publicUrl(publicKey);
-  if (!url) {
-    return { status: "success", message: `Working: ${store.description}. The site serves uploaded images itself.` };
-  }
-
-  try {
-    await store.put(publicKey, "ok", { contentType: "text/plain", public: true });
-    let problem: string | null = null;
-    try {
-      const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-      if (!res.ok) problem = `the CDN address answered with an error (${res.status})`;
-      else if ((await res.text()) !== "ok") problem = "the CDN address returned something unexpected";
-    } catch {
-      problem = "the CDN address could not be reached";
-    }
-    if (problem) {
-      return fail(`Files can be saved, but ${problem}. Check DO_SPACES_CDN_URL, and that the CDN is enabled on the Space.`);
-    }
-    return { status: "success", message: `Working: ${store.description}. Uploaded images are served from the CDN.` };
-  } catch (error) {
-    return fail(explainStorageError(error));
-  } finally {
-    await store.delete(publicKey).catch(() => undefined);
-  }
+  return { status: "success", message: `Working: ${STORAGE_DESCRIPTION}. Uploaded images are served by the site.` };
 }

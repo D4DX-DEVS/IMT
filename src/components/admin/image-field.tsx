@@ -83,7 +83,7 @@ export function MediaPicker({
     let cancelled = false;
     fetch("/api/admin/media")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("failed"))))
-      .then((data: { items: MediaItem[] }) => !cancelled && setItems(data.items))
+      .then((data) => !cancelled && setItems((data as { items: MediaItem[] }).items))
       .catch(() => !cancelled && setError("Could not load the image library."));
     return () => {
       cancelled = true;

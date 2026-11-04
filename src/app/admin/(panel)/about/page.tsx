@@ -6,9 +6,6 @@ import { AboutForm } from "@/components/admin/about-form";
 
 export const metadata: Metadata = { title: "About page" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function AboutEditorPage() {
   await requireAdmin();
   const content = await readContent();

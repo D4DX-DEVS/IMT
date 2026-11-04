@@ -11,9 +11,6 @@ import { buttonClass } from "@/components/admin/styles";
 
 export const metadata: Metadata = { title: "News" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function NewsAdminPage() {
   await requireAdmin();
   const { posts } = await readContent();

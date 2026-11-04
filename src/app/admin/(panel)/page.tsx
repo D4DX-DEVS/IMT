@@ -3,14 +3,11 @@ import Link from "next/link";
 import { ArrowRight, Building2, FileText, Home, Images, Newspaper, Settings, type LucideIcon } from "lucide-react";
 import { contentLastSaved, readContent } from "@/content/store";
 import { requireAdmin } from "@/lib/auth";
-import { explainStorageError, getStore } from "@/storage";
+import { STORAGE_DESCRIPTION, explainStorageError } from "@/storage";
 import { Card, Notice, PageHeader } from "@/components/admin/ui";
 import { StorageCheck } from "@/components/admin/storage-check";
 
 export const metadata: Metadata = { title: "Dashboard" };
-
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
 
 const sections: { href: string; label: string; text: string; icon: LucideIcon }[] = [
   { href: "/admin/site", label: "Site settings", text: "Name, motto, address, phone, email, logo and footer text.", icon: Settings },
@@ -25,18 +22,12 @@ export default async function DashboardPage() {
   await requireAdmin();
 
   let storageProblem: string | null = null;
-  let storageDescription = "";
-  let usingLocalDisk = false;
   let content: Awaited<ReturnType<typeof readContent>> | null = null;
   let saved: Date | null = null;
   try {
-    const store = getStore();
-    storageDescription = store.description;
-    usingLocalDisk = store.kind === "local";
     [content, saved] = await Promise.all([readContent(), contentLastSaved()]);
   } catch (error) {
-    storageProblem =
-      error instanceof Error && error.message.startsWith("DigitalOcean Spaces is only partly") ? error.message : explainStorageError(error);
+    storageProblem = explainStorageError(error);
   }
 
   const stats = content && [
@@ -118,31 +109,14 @@ export default async function DashboardPage() {
         description="Where the content, backups and uploaded images are kept."
         className="mt-10"
       >
-        {storageDescription && <p className="mb-4 text-sm font-semibold text-brand-800">{storageDescription}</p>}
-        {usingLocalDisk && process.env.NODE_ENV === "production" && (
-          <div className="mb-4">
-            <Notice tone="warning">
-              <p className="font-semibold">Using the server’s local disk.</p>
-              <p className="mt-1">
-                On DigitalOcean App Platform the disk is erased on every deploy, so edits and uploads would be lost. Add the{" "}
-                <code className="font-semibold">DO_SPACES_*</code> settings to keep them in a Space.
-              </p>
-            </Notice>
-          </div>
-        )}
-        {usingLocalDisk && process.env.NODE_ENV !== "production" && (
-          <p className="mb-4 text-sm text-ink/60">
-            Fine for development. To use DigitalOcean Spaces, set the <code className="font-semibold">DO_SPACES_*</code> variables
-            (see <code className="font-semibold">.env.example</code>).
-          </p>
-        )}
+        <p className="mb-4 text-sm font-semibold text-brand-800">{STORAGE_DESCRIPTION}</p>
         <StorageCheck />
       </Card>
 
       <Card title="Good to know" className="mt-6">
         <ul className="list-disc space-y-2 pl-5 text-sm text-ink/70">
           <li>Uploaded images are resized to fit within 2400px and stripped of location data automatically.</li>
-          <li>The last 30 versions of the content are kept as backups in the same storage.</li>
+          <li>The last 30 versions of the content are kept as backups in the database.</li>
           <li>The sign-in username and password are set in the server’s environment settings.</li>
         </ul>
       </Card>

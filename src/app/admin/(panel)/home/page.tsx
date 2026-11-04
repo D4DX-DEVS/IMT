@@ -6,9 +6,6 @@ import { HomeForm } from "@/components/admin/home-form";
 
 export const metadata: Metadata = { title: "Home page" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function HomeEditorPage() {
   await requireAdmin();
   const content = await readContent();

@@ -7,9 +7,6 @@ import { PostForm } from "@/components/admin/post-form";
 
 export const metadata: Metadata = { title: "Write a post" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function NewPostPage() {
   await requireAdmin();
   // `requireAdmin` has already made this a request-time render, so reading the clock is fine.

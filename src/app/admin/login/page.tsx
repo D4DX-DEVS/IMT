@@ -10,9 +10,6 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default function LoginPage({ searchParams }: PageProps<"/admin/login">) {
   return (
     <main className="relative isolate grid min-h-dvh place-items-center overflow-hidden bg-brand-950 px-5 py-12">

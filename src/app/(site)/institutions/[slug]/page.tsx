@@ -17,10 +17,6 @@ export async function generateStaticParams() {
   return institutions.map((i) => ({ slug: i.slug }));
 }
 
-// Every known slug is prerendered above. This only opts out of the dev-time "instant navigation"
-// check, which flags reading `params` for slugs outside that list (those render the not-found UI).
-export const instant = false;
-
 export async function generateMetadata({ params }: PageProps<"/institutions/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const { institutions } = await getContent();

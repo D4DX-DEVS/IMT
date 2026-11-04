@@ -9,9 +9,6 @@ import { InstitutionForm } from "@/components/admin/institution-form";
 
 export const metadata: Metadata = { title: "Edit institution" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function EditInstitutionPage({ params }: PageProps<"/admin/institutions/[slug]">) {
   await requireAdmin();
   const { slug } = await params;

@@ -4,29 +4,38 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run images:manifest && npm run db:migrate:local && next build",
     "start": "next start",
     "lint": "eslint",
-    "storage:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrate-to-spaces.mjs"
+    "images:manifest": "node scripts/gen-builtin-images.mjs",
+    "cf:build": "npm run images:manifest && npm run db:migrate:local && opennextjs-cloudflare build",
+    "preview": "npm run cf:build && opennextjs-cloudflare preview",
+    "deploy": "npm run cf:build && opennextjs-cloudflare deploy && node scripts/refresh-content-cache.mjs",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:migrate:local": "wrangler d1 migrations apply imt-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply imt-db --remote",
+    "storage:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrate-spaces-to-cloudflare.mjs"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1152.0",
+    "@opennextjs/cloudflare": "^1.20.16",
     "lucide-react": "^1.59.0",
     "motion": "^14.3.0",
-    "next": "16.4.2",
+    "next": "^16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "sharp": "^0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1152.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "^16.4.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.157.0"
   }
 }

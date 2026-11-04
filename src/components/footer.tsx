@@ -7,8 +7,8 @@ import { footerCategoryLinks, poweredBy, quickLinks } from "@/data/nav";
 import { InstitutionLink } from "@/components/institution-link";
 import { Reveal } from "@/components/reveal";
 
-async function CopyrightYear() {
-  "use cache";
+/** Rendered with the (cached) page; the page is regenerated on every content save. */
+function CopyrightYear() {
   return <>{new Date().getFullYear()}</>;
 }
 

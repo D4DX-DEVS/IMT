@@ -1,0 +1,50 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "imt-website",
+  // Cloudflare account: erp@d4dx.co
+  "account_id": "0f08a478556c8f3e0a22b6b086b3069f",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+
+  // Non-secret settings. Secrets (ADMIN_USERNAME, ADMIN_PASSWORD, SESSION_SECRET) are set with
+  // `npx wrangler secret put <NAME>`; for local development put them in .dev.vars (see .dev.vars.example).
+
+  "services": [
+    // Self-reference used by OpenNext's revalidation queue. Must match "name" above.
+    { "binding": "WORKER_SELF_REFERENCE", "service": "imt-website" }
+  ],
+
+  "d1_databases": [
+    // Site data: content, its backups, the uploaded-image index and the login throttle.
+    // `migrations/` holds the schema; apply with `npm run db:migrate:remote`.
+    {
+      "binding": "DB",
+      "database_name": "imt-db",
+      "database_id": "25dabeb4-2b5b-480d-be23-e1b081602322",
+      "migrations_dir": "migrations"
+    },
+    // OpenNext's cache tags (`revalidations` table, created by `opennextjs-cloudflare deploy`).
+    // A separate database: two bindings to one database deadlock in local development.
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "imt-next-cache",
+      "database_id": "1d37cb46-266e-4508-9124-0a266fe4656e"
+    }
+  ],
+
+  "r2_buckets": [
+    // Uploaded images, stored under `uploads/<name>`. Private: the worker serves them at /uploads/<name>.
+    { "binding": "MEDIA", "bucket_name": "imt-media" },
+    // OpenNext's incremental cache (prerendered pages and "use cache" entries).
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "imt-website-opennext-cache" }
+  ],
+
+  // Cloudflare Images: resizes uploads and serves resized versions for next/image.
+  "images": { "binding": "IMAGES" }
+}

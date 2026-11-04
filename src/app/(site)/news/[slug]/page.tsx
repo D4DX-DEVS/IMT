@@ -14,10 +14,6 @@ export async function generateMetadata({ params }: PageProps<"/news/[slug]">): P
   return post ? { title: post.title, description: post.content[0] } : {};
 }
 
-// Posts are added in the admin panel at any time, so their slugs aren't known at build time and
-// each page renders on first request. This opts out of the dev-time "instant navigation" check.
-export const instant = false;
-
 export default async function PostPage({ params }: PageProps<"/news/[slug]">) {
   const { slug } = await params;
   const { posts } = await getContent();

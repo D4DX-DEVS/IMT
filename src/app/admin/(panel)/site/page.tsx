@@ -6,9 +6,6 @@ import { SiteForm } from "@/components/admin/site-form";
 
 export const metadata: Metadata = { title: "Site settings" };
 
-// Reads the session cookie, so this page can't be prerendered; a loading skeleton covers the wait.
-export const instant = false;
-
 export default async function SiteSettingsPage() {
   await requireAdmin();
   const { site } = await readContent();

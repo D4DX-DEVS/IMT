@@ -1,31 +1,8 @@
 import type { NextConfig } from "next";
-
-/**
- * Uploaded images are loaded from the Space's CDN, so Next's image optimizer must be allowed to fetch from
- * that address (only from the uploads folder). Read from DO_SPACES_CDN_URL / DO_SPACES_FOLDER at build and start.
- */
-function cdnImagePatterns(): NonNullable<NonNullable<NextConfig["images"]>["remotePatterns"]> {
-  const raw = process.env.DO_SPACES_CDN_URL;
-  if (!raw) return [];
-  try {
-    const cdn = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-    const folder = (process.env.DO_SPACES_FOLDER ?? "").trim().replace(/^\/+|\/+$/g, "");
-    return [
-      {
-        protocol: cdn.protocol === "http:" ? "http" : "https",
-        hostname: cdn.hostname,
-        port: cdn.port,
-        pathname: `${cdn.pathname.replace(/\/+$/, "")}/${folder ? `${folder}/` : ""}uploads/**`,
-      },
-    ];
-  } catch {
-    return [];
-  }
-}
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+import { DEVICE_SIZES, IMAGE_QUALITIES, IMAGE_SIZES } from "./src/lib/image-sizes";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
   turbopack: {
     root: __dirname,
     rules: {
@@ -36,10 +13,14 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // Uploaded images (R2) are resized by the /uploads route, everything else by /_next/image;
+    // both use Cloudflare Images. See src/lib/image-loader.ts.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
     formats: ["image/avif", "image/webp"],
-    remotePatterns: cdnImagePatterns(),
-    // Lets the optimizer fetch from a local S3 emulator while developing. Never in production.
-    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
+    deviceSizes: DEVICE_SIZES,
+    imageSizes: IMAGE_SIZES,
+    qualities: IMAGE_QUALITIES,
   },
   // Keep old WordPress URLs working.
   async redirects() {
@@ -51,3 +32,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Gives `next dev` (and the build's prerendering) local versions of the D1/R2/Images bindings in wrangler.jsonc.
+initOpenNextCloudflareForDev();
