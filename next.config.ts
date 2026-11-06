@@ -22,6 +22,13 @@ const nextConfig: NextConfig = {
     imageSizes: IMAGE_SIZES,
     qualities: IMAGE_QUALITIES,
   },
+  experimental: {
+    serverActions: {
+      // imtpmna.org reaches the worker with Host/x-forwarded-host = the workers.dev hostname, so
+      // Next's Server Action CSRF check (origin vs host) rejects every form post, e.g. admin login.
+      allowedOrigins: ["imtpmna.org", "www.imtpmna.org"],
+    },
+  },
   // Keep old WordPress URLs working.
   async redirects() {
     return [
